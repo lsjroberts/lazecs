@@ -1,10 +1,12 @@
 import { App, PluginInterface } from '../types';
 
+import { Startup } from '../schedules';
+
 export class CanvasPlugin implements PluginInterface {
     root!: string;
 
     build(app: App): void {
-        app.add_startup_system(this.initial_render.bind(this));
+        app.add_systems(Startup, this.initial_render.bind(this));
     }
 
     initial_render() {

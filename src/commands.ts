@@ -1,10 +1,10 @@
+import { Ctr, EntityPair } from './types';
 import {
+    componentEntityMap,
     componentMap,
-    entityComponentMap,
     entityMap,
     nextEntity,
 } from './entities';
-import { Ctr, EntityPair } from './types';
 
 export class CommandsClass {
     spawn<T extends Ctr, U extends Ctr, V extends Ctr>(
@@ -39,8 +39,14 @@ export class CommandsClass {
         comp.set(entity, target);
         componentMap.set(component, comp);
 
-        const entityComp = entityComponentMap.get(component) ?? new Set();
+        const entityComp = componentEntityMap.get(component) ?? new Set();
         entityComp.add(entity);
-        entityComponentMap.set(component, entityComp);
+        componentEntityMap.set(component, entityComp);
     }
+}
+
+const commandsInstance = new CommandsClass();
+
+export function commands() {
+    return commandsInstance;
 }

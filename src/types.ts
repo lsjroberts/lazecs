@@ -5,15 +5,15 @@ export type Properties<T> = {
     [Key in keyof T as T[Key] extends Function ? never : Key]: T[Key];
 };
 
-export type StartupSystem = (commands: Commands) => void;
 export type System = () => void;
 
 export type FilterType = { has: Ctr } | { without: Ctr };
 
 export interface App {
+    add_schedule(schedule: ScheduleInterface): App;
+    add_systems(schedule: ScheduleLabel, ...systems: Array<System>): App;
     add_plugin(plugin: Plugin, props?: Properties<InstanceType<Plugin>>): App;
-    add_startup_system(system: StartupSystem): App;
-    add_system(system: System): App;
+    insert_resource<T>(resource: Ctr, initial_value: T): App;
     run(): void;
 }
 
@@ -24,6 +24,12 @@ export interface Commands {
         pair3?: EntityPair<V>
     ): void;
 }
+
+export interface ScheduleInterface {
+    add_systems(...systems: Array<System>): ScheduleInterface;
+    run(): void;
+}
+export interface ScheduleLabel {}
 
 export type Plugin = Ctr<PluginInterface>;
 export interface PluginInterface {

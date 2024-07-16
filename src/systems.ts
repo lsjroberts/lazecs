@@ -1,5 +1,5 @@
-import { componentMap, entityComponentMap, entityMap } from './entities';
 import { Ctr, FilterType } from './types';
+import { componentEntityMap, componentMap, entityMap } from './entities';
 
 export function query<T extends Ctr, U extends Ctr>(
     component: [T, U],
@@ -28,7 +28,7 @@ export function query<T extends Ctr, U extends Ctr>(
             > {
                 let entities;
                 for (const comp of component) {
-                    const componentEntities = entityComponentMap.get(comp);
+                    const componentEntities = componentEntityMap.get(comp);
                     if (!componentEntities) return;
 
                     if (entities) {
@@ -61,7 +61,6 @@ export function query<T extends Ctr, U extends Ctr>(
                 if (filter?.has && entity?.has(filter.has) === false) continue;
                 if (filter?.without && entity?.has(filter.without)) continue;
                 yield obj as InstanceType<T>;
-                // yield obj;
             }
 
             return this;

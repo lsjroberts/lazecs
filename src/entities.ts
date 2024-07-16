@@ -13,5 +13,5 @@ export function nextEntity() {
 }
 
 export const componentMap = new Map<Ctr, Map<number, object>>();
+export const componentEntityMap = new Map<Ctr, Set<number>>();
 export const entityMap = new Map<number, Set<Ctr>>();
-export const entityComponentMap = new Map<Ctr, Set<number>>();

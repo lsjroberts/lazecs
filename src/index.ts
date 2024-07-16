@@ -1,4 +1,10 @@
 export { AppClass as App } from './app';
-export * from './plugins/default';
+
+export * from './commands';
+export * from './math';
+export { Resource } from './resources';
+export * from './schedules';
 export * from './systems';
 export * from './types';
+
+export * from './plugins/default';

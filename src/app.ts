@@ -1,10 +1,32 @@
-import { CommandsClass } from './commands';
-import { App, Plugin, Properties, StartupSystem, System } from './types';
+import {
+    App,
+    Ctr,
+    Plugin,
+    Properties,
+    ScheduleInterface,
+    ScheduleLabel,
+    System,
+} from './types';
+import { Startup, Update, scheduleMap } from './schedules';
+
+import { resourceMap } from './resources';
 
 export class AppClass implements App {
-    commands = new CommandsClass();
-    startup_systems: Array<StartupSystem> = [];
-    systems: Array<System> = [];
+    add_schedule(schedule: ScheduleInterface): App {
+        return this;
+    }
+
+    add_systems(schedule: ScheduleLabel, ...systems: Array<System>) {
+        const sch = scheduleMap.get(schedule);
+
+        if (!sch) {
+            throw new Error(`No schedule registered for ${schedule}.`);
+        }
+
+        sch.add_systems(...systems);
+
+        return this;
+    }
 
     add_plugin(plugin: Plugin, props?: Properties<InstanceType<Plugin>>) {
         const plug: any = new plugin();
@@ -12,26 +34,24 @@ export class AppClass implements App {
             plug[key] = value;
         }
         plug.build(this);
+
         return this;
     }
 
-    add_startup_system(system: StartupSystem) {
-        this.startup_systems.push(system);
+    insert_resource<T>(resource: Ctr, initial_value: T): App {
+        resourceMap.set(resource, initial_value);
         return this;
     }
 
-    add_system(system: System) {
-        this.systems.push(system);
-        return this;
+    async run() {
+        await scheduleMap.get(Startup)?.run();
+        this.frame();
     }
 
-    run() {
-        for (const system of this.startup_systems) {
-            system(this.commands);
-        }
-
-        for (const system of this.systems) {
-            system();
-        }
+    private frame() {
+        requestAnimationFrame(async () => {
+            await scheduleMap.get(Update)?.run();
+            this.frame();
+        });
     }
 }

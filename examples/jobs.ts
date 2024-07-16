@@ -1,4 +1,4 @@
-import { App, type Commands, query, has, without } from '../src';
+import { App, Startup, Update, commands, has, query, without } from '../src';
 
 function main() {
     new App().add_plugin(PeoplePlugin).run();
@@ -6,11 +6,13 @@ function main() {
 
 class PeoplePlugin {
     build(app: App) {
-        app.add_startup_system(setup)
-            .add_system(print_names)
-            .add_system(people_with_jobs)
-            .add_system(people_ready_for_hire)
-            .add_system(person_does_job);
+        app.add_systems(Startup, setup).add_systems(
+            Update,
+            print_names,
+            people_with_jobs,
+            people_ready_for_hire,
+            person_does_job
+        );
     }
 }
 
@@ -28,13 +30,10 @@ enum Job {
     FireFighter = 'firefighter',
 }
 
-function setup(commands: Commands) {
-    commands.spawn(
-        [Person, { name: 'Alice' }],
-        [Employed, { job: Job.Doctor }]
-    );
-    commands.spawn([Person, { name: 'Bob' }], [Employed, { job: Job.Lawyer }]);
-    commands.spawn([Person, { name: 'Charlie' }]);
+function setup(cmds = commands()) {
+    cmds.spawn([Person, { name: 'Alice' }], [Employed, { job: Job.Doctor }]);
+    cmds.spawn([Person, { name: 'Bob' }], [Employed, { job: Job.Lawyer }]);
+    cmds.spawn([Person, { name: 'Charlie' }]);
 }
 
 function print_names(people = query(Person)) {
