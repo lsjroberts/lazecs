@@ -7,12 +7,25 @@ import {
     ScheduleLabel,
     System,
 } from './types';
+import {
+    MainSchedulePlugin,
+    StartupSchedulePlugin,
+    UpdateSchedulePlugin,
+} from './plugins';
 import { Startup, Update, scheduleMap } from './schedules';
 
+import { entityChangedMap } from './entities';
 import { resourceMap } from './resources';
 
 export class AppClass implements App {
+    constructor() {
+        this.add_plugin(StartupSchedulePlugin)
+            .add_plugin(MainSchedulePlugin)
+            .add_plugin(UpdateSchedulePlugin);
+    }
+
     add_schedule(schedule: ScheduleInterface): App {
+        scheduleMap.set(schedule.label, schedule);
         return this;
     }
 
@@ -51,6 +64,7 @@ export class AppClass implements App {
     private frame() {
         requestAnimationFrame(async () => {
             await scheduleMap.get(Update)?.run();
+            entityChangedMap.clear();
             this.frame();
         });
     }

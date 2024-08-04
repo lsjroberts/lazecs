@@ -5,7 +5,7 @@ export const scheduleMap = new Map<ScheduleLabel, ScheduleInterface>();
 export class Schedule implements ScheduleInterface {
     private systems: Array<System> = [];
 
-    constructor(private readonly label: ScheduleLabel) {}
+    constructor(public readonly label: ScheduleLabel) {}
 
     add_systems(...systems: Array<System>): Schedule {
         this.systems.push(...systems);
@@ -21,13 +21,11 @@ export class Schedule implements ScheduleInterface {
 
 //
 
-export class Main implements ScheduleLabel {
-    static run_main() {}
-}
-
 export class PreStartup implements ScheduleLabel {}
 
-export class Startup implements ScheduleLabel {}
+export class Startup implements ScheduleLabel {
+    static run_startup() {}
+}
 
 export class PostStartup implements ScheduleLabel {}
 
@@ -53,7 +51,13 @@ export class FixedMain implements ScheduleLabel {
     static run_fixed_main() {}
 }
 
-export class Update implements ScheduleLabel {}
+export class Main implements ScheduleLabel {
+    static run_main() {}
+}
+
+export class Update implements ScheduleLabel {
+    static run_update() {}
+}
 
 export class PostUpdate implements ScheduleLabel {}
 

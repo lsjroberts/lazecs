@@ -1,7 +1,9 @@
 import { Ctr, EntityPair } from './types';
 import {
     componentEntityMap,
+    componentInstanceEntityMap,
     componentMap,
+    entityChangedMap,
     entityMap,
     nextEntity,
 } from './entities';
@@ -29,8 +31,27 @@ export class CommandsClass {
     ) {
         const [component, props] = pair;
         const target: any = new component();
-        for (const [key, value] of Object.entries(props)) {
-            target[key] = value;
+        for (const [prop, value] of Object.entries(props)) {
+            function getFn(this: any) {
+                return this[`#${prop}`];
+            }
+
+            function setFn(this: any, value: unknown) {
+                // console.log('set', this, prop, value);
+                const changed = entityChangedMap.get(entity) ?? new Set();
+                changed.add(component);
+                entityChangedMap.set(entity, changed);
+                this[`#${prop}`] = value;
+            }
+
+            Object.defineProperty(target, prop, {
+                get: getFn,
+                set: setFn,
+                enumerable: true,
+                configurable: false,
+            });
+
+            target[prop] = value;
         }
 
         container.add(component);
@@ -42,6 +63,8 @@ export class CommandsClass {
         const entityComp = componentEntityMap.get(component) ?? new Set();
         entityComp.add(entity);
         componentEntityMap.set(component, entityComp);
+
+        componentInstanceEntityMap.set(target, entity);
     }
 }
 

@@ -7,7 +7,7 @@ import {
     Startup,
     Update,
     Vec2,
-} from '../../src';
+} from '../../backup';
 
 function main() {
     new App()

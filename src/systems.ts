@@ -1,6 +1,19 @@
 import { Ctr, FilterType } from './types';
-import { componentEntityMap, componentMap, entityMap } from './entities';
+import {
+    componentEntityMap,
+    componentMap,
+    entityChangedMap,
+    entityMap,
+} from './entities';
 
+export function query<T extends Ctr, U extends Ctr, V extends Ctr>(
+    component: [T, U, V],
+    filter?: Filter
+): {
+    [Symbol.iterator](): IterableIterator<
+        [InstanceType<T>, InstanceType<U>, InstanceType<V>]
+    >;
+};
 export function query<T extends Ctr, U extends Ctr>(
     component: [T, U],
     filter?: Filter
@@ -13,15 +26,60 @@ export function query<T extends Ctr>(
 ): {
     [Symbol.iterator](): IterableIterator<InstanceType<T>>;
 };
-export function query<T extends Ctr, U extends Ctr>(
-    component: T | [T, U],
+export function query<T extends Ctr, U extends Ctr, V extends Ctr>(
+    component: T | [T, U] | [T, U, V],
     filter?: Filter
 ): {
     [Symbol.iterator]():
         | IterableIterator<InstanceType<T>>
-        | IterableIterator<[InstanceType<T>, InstanceType<U>]>;
+        | IterableIterator<[InstanceType<T>, InstanceType<U>]>
+        | IterableIterator<[InstanceType<T>, InstanceType<U>, InstanceType<V>]>;
 } {
     if (Array.isArray(component)) {
+        if (component.length === 3) {
+            return {
+                *[Symbol.iterator](): IterableIterator<
+                    [InstanceType<T>, InstanceType<U>, InstanceType<V>]
+                > {
+                    let entities;
+                    for (const comp of component) {
+                        const componentEntities = componentEntityMap.get(comp);
+                        if (!componentEntities) return;
+
+                        if (entities) {
+                            entities = intersection(
+                                entities,
+                                componentEntities
+                            );
+                        } else {
+                            entities = new Set(componentEntities.values());
+                        }
+                    }
+
+                    if (!entities) return;
+
+                    for (const id of entities) {
+                        if (is_filtered(id, entityMap.get(id), filter))
+                            continue;
+
+                        const t = componentMap
+                            .get(component[0])!
+                            .get(id)! as InstanceType<T>;
+
+                        const u = componentMap
+                            .get(component[1])!
+                            .get(id)! as InstanceType<U>;
+
+                        const v = componentMap
+                            .get(component[2])!
+                            .get(id)! as InstanceType<V>;
+
+                        yield [t, u, v];
+                    }
+                },
+            };
+        }
+
         return {
             *[Symbol.iterator](): IterableIterator<
                 [InstanceType<T>, InstanceType<U>]
@@ -41,14 +99,17 @@ export function query<T extends Ctr, U extends Ctr>(
                 if (!entities) return;
 
                 for (const id of entities) {
-                    yield [
-                        componentMap
-                            .get(component[0])!
-                            .get(id)! as InstanceType<T>,
-                        componentMap
-                            .get(component[1])!
-                            .get(id)! as InstanceType<U>,
-                    ];
+                    if (is_filtered(id, entityMap.get(id), filter)) continue;
+
+                    const t = componentMap
+                        .get(component[0])!
+                        .get(id)! as InstanceType<T>;
+
+                    const u = componentMap
+                        .get(component[1])!
+                        .get(id)! as InstanceType<U>;
+
+                    yield [t, u];
                 }
             },
         };
@@ -56,10 +117,14 @@ export function query<T extends Ctr, U extends Ctr>(
 
     return {
         *[Symbol.iterator](): IterableIterator<InstanceType<T>> {
+            // Shortcut if we are filtering only changed entities and there are none.
+            if (filter?.changed && entityChangedMap.size === 0) {
+                return this;
+            }
+
             for (const [id, obj] of componentMap.get(component) ?? []) {
-                const entity = entityMap.get(id);
-                if (filter?.has && entity?.has(filter.has) === false) continue;
-                if (filter?.without && entity?.has(filter.without)) continue;
+                const ctrs = entityMap.get(id);
+                if (is_filtered(id, ctrs, filter)) continue;
                 yield obj as InstanceType<T>;
             }
 
@@ -68,14 +133,31 @@ export function query<T extends Ctr, U extends Ctr>(
     };
 }
 
+function is_filtered(id: number, ctrs?: Set<Ctr>, filter?: Filter) {
+    if (!ctrs || !filter) return false;
+    if (filter.has && ctrs.has(filter.has) === false) return true;
+    if (filter.without && ctrs.has(filter.without)) return true;
+    if (filter.changed) {
+        const changedEntity = entityChangedMap.get(id);
+        if (changedEntity?.has(filter.changed) !== true) return true;
+    }
+    return false;
+}
+
 export class Filter {
+    changed?: Ctr;
     has?: Ctr;
     without?: Ctr;
 
     constructor(filter: FilterType) {
+        if ('changed' in filter) this.changed = filter.changed;
         if ('has' in filter) this.has = filter.has;
         if ('without' in filter) this.without = filter.without;
     }
+}
+
+export function changed<T extends Ctr>(component: T) {
+    return new Filter({ changed: component });
 }
 
 export function has<T extends Ctr>(component: T) {

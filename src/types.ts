@@ -7,7 +7,7 @@ export type Properties<T> = {
 
 export type System = () => void;
 
-export type FilterType = { has: Ctr } | { without: Ctr };
+export type FilterType = { has: Ctr } | { without: Ctr } | { changed: Ctr };
 
 export interface App {
     add_schedule(schedule: ScheduleInterface): App;
@@ -26,6 +26,7 @@ export interface Commands {
 }
 
 export interface ScheduleInterface {
+    label: ScheduleLabel;
     add_systems(...systems: Array<System>): ScheduleInterface;
     run(): void;
 }

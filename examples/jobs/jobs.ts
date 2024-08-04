@@ -1,4 +1,4 @@
-import { App, Startup, Update, commands, has, query, without } from '../src';
+import { App, Startup, Update, commands, has, query, without } from '../../src';
 
 function main() {
     new App().add_plugin(PeoplePlugin).run();
