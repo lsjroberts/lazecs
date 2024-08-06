@@ -1,10 +1,12 @@
 import { App, PluginInterface } from '../types';
-import { CanvasPlugin } from './canvas';
+
+import { HtmlPlugins } from './html';
+import { InputPlugin } from './input';
 
 export class DefaultPlugins implements PluginInterface {
     root!: string;
 
     build(app: App): void {
-        app.add_plugin(CanvasPlugin, { root: this.root });
+        app.add_plugin(HtmlPlugins).add_plugin(InputPlugin);
     }
 }

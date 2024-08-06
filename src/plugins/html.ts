@@ -1,13 +1,13 @@
-import { App, PluginInterface } from './types';
-import { changed, query } from './systems';
+import { App, PluginInterface } from '../types';
+import { changed, query } from '../systems';
 
-import { Update } from './schedules';
+import { PostUpdate } from '../schedules';
 
 export class HtmlPlugins implements PluginInterface {
     root!: string;
 
     build(app: App): void {
-        app.add_systems(Update, render_html);
+        app.add_systems(PostUpdate, render_html);
     }
 }
 

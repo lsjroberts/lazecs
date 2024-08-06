@@ -6,6 +6,8 @@ import {
     entityMap,
 } from './entities';
 
+import { resourceMap } from './resources';
+
 export function query<T extends Ctr, U extends Ctr, V extends Ctr>(
     component: [T, U, V],
     filter?: Filter
@@ -172,4 +174,10 @@ export function without<T extends Ctr>(component: T) {
 
 function intersection(a: Set<number>, b: Set<number>) {
     return new Set([...a].filter((x) => b.has(x)));
+}
+
+// ---
+
+export function resource<T extends Ctr>(resource: T) {
+    return resourceMap.get(resource);
 }

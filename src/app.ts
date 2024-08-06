@@ -8,20 +8,20 @@ import {
     System,
 } from './types';
 import {
-    MainSchedulePlugin,
-    StartupSchedulePlugin,
-    UpdateSchedulePlugin,
-} from './plugins';
-import { Startup, Update, scheduleMap } from './schedules';
+    PostUpdate,
+    PreUpdate,
+    Startup,
+    Update,
+    scheduleMap,
+} from './schedules';
 
+import { MainSchedulePlugin } from './plugins/mainSchedule';
 import { entityChangedMap } from './entities';
 import { resourceMap } from './resources';
 
 export class AppClass implements App {
     constructor() {
-        this.add_plugin(StartupSchedulePlugin)
-            .add_plugin(MainSchedulePlugin)
-            .add_plugin(UpdateSchedulePlugin);
+        this.add_plugin(MainSchedulePlugin);
     }
 
     add_schedule(schedule: ScheduleInterface): App {
@@ -51,19 +51,24 @@ export class AppClass implements App {
         return this;
     }
 
-    insert_resource<T>(resource: Ctr, initial_value: T): App {
+    insert_resource<T extends Ctr>(
+        resource: T,
+        initial_value: Properties<InstanceType<T>>
+    ): App {
         resourceMap.set(resource, initial_value);
         return this;
     }
 
-    async run() {
-        await scheduleMap.get(Startup)?.run();
+    run() {
+        scheduleMap.get(Startup)?.run();
         this.frame();
     }
 
     private frame() {
         requestAnimationFrame(async () => {
-            await scheduleMap.get(Update)?.run();
+            scheduleMap.get(PreUpdate)?.run();
+            scheduleMap.get(Update)?.run();
+            scheduleMap.get(PostUpdate)?.run();
             entityChangedMap.clear();
             this.frame();
         });

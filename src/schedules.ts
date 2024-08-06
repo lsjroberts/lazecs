@@ -12,7 +12,7 @@ export class Schedule implements ScheduleInterface {
         return this;
     }
 
-    async run() {
+    run() {
         for (const system of this.systems) {
             system();
         }
@@ -31,7 +31,9 @@ export class PostStartup implements ScheduleLabel {}
 
 export class First implements ScheduleLabel {}
 
-export class PreUpdate implements ScheduleLabel {}
+export class PreUpdate implements ScheduleLabel {
+    static run_pre_update() {}
+}
 
 export class StateTransition implements ScheduleLabel {}
 
@@ -59,6 +61,8 @@ export class Update implements ScheduleLabel {
     static run_update() {}
 }
 
-export class PostUpdate implements ScheduleLabel {}
+export class PostUpdate implements ScheduleLabel {
+    static run_post_update() {}
+}
 
 export class Last implements ScheduleLabel {}

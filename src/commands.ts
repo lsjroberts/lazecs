@@ -37,10 +37,18 @@ export class CommandsClass {
             }
 
             function setFn(this: any, value: unknown) {
-                // console.log('set', this, prop, value);
-                const changed = entityChangedMap.get(entity) ?? new Set();
-                changed.add(component);
-                entityChangedMap.set(entity, changed);
+                const prev = this[`#${prop}`];
+                let changed = prev !== value;
+
+                if (Array.isArray(prev) && Array.isArray(value)) {
+                    changed = !arraysMatch(prev, value);
+                }
+
+                if (!changed) return;
+
+                const components = entityChangedMap.get(entity) ?? new Set();
+                components.add(component);
+                entityChangedMap.set(entity, components);
                 this[`#${prop}`] = value;
             }
 
@@ -72,4 +80,12 @@ const commandsInstance = new CommandsClass();
 
 export function commands() {
     return commandsInstance;
+}
+
+function arraysMatch(a: Array<any>, b: Array<any>) {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) return false;
+    }
+    return true;
 }

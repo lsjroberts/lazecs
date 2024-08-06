@@ -1,3 +1,5 @@
+export type Entity = number;
+
 export type Ctr<T = {}> = new () => T;
 
 export type EntityPair<T extends Ctr> = [T, Properties<InstanceType<T>>];
@@ -13,7 +15,10 @@ export interface App {
     add_schedule(schedule: ScheduleInterface): App;
     add_systems(schedule: ScheduleLabel, ...systems: Array<System>): App;
     add_plugin(plugin: Plugin, props?: Properties<InstanceType<Plugin>>): App;
-    insert_resource<T>(resource: Ctr, initial_value: T): App;
+    insert_resource<T extends Ctr>(
+        resource: T,
+        initial_value: Properties<InstanceType<T>>
+    ): App;
     run(): void;
 }
 
